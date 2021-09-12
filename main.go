@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 	"unsafe"
 )
 
@@ -71,6 +72,22 @@ func divide(x ,y int) (int, error) {
 		return 0, errors.New("Can't divide with 0. ")
 	}
 	return x / y, nil
+}
+
+func finder1(mine [5]string) {
+	for _, ore := range mine {
+		if ore == "ore" {
+			fmt.Println("Finder 1 found ore! ")
+		}
+	}
+}
+
+func finder2(mine [5]string) {
+	for _,ore := range mine {
+		if ore == "ore" {
+			fmt.Println("Finder 2 found ore! ")
+		}
+	}
 }
 
 func main() {
@@ -257,5 +274,61 @@ func main() {
 	}
 
 	fmt.Println("--------------------------")
+
+	fmt.Println(" Goroutine and Threads ")
+	// go <function>
+
+	// Anonymous go routine
+	// go func() {
+	// ...
+	// fmt.Println("I'm running in my own go routine. ")
+	// ...
+	// } ()
+
+	theMine := [5]string{"rock", "ore", "ore", "rock", "ore"}
+	go finder1(theMine)
+	go finder2(theMine)
+	<-time.After(time.Second * 5)
+	fmt.Println("--------------------------")
+
+	fmt.Println(" Channels of Goroutines ")
+
+	// <Channel Name> := make(chan string)
+	// Goroutine can send and get thing in channel by use "<-"
+
+	// myFirstChannel := make(chan string)
+	// nyFirstChannel <- "Hello" // send
+	// myVariable 	  <- myFirstChannel // get
+
+	// Finder
+	oreChannel := make(chan string)
+	minedOreChan := make(chan string)
+	go func(mine [5]string) {
+		for _, item := range mine {
+			if item == "ore" {
+				oreChannel <- item // send item on oreChannel 
+			}
+		}
+	}(theMine)
+	// Ore Breaker
+	go func() {
+		for i := 0; i < 3; i++ {
+			foundOre := <- oreChannel // read from oreChannel
+			fmt.Println("From Finder :",foundOre)
+			minedOreChan <- "mineOre" // send to minedOreChan
+		}	
+	}()
+	// Smelter
+	go func() {
+		for i := 0; i < 3; i++ {
+			minedOre := <-minedOreChan // read from minedOreChannel
+			fmt.Println("From Miner :", minedOre)
+			fmt.Println("From Smelter: Ore is Smelted")
+		}
+	}()
+	<-time.After(time.Second * 5) // Again, you can ignore this
+
+	fmt.Println("--------------------------")
+
 
 	}
